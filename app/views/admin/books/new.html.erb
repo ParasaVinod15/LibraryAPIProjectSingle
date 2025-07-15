@@ -1,0 +1,46 @@
+
+<h1 style="text-align:center; font-family:'Segoe UI'; color:#2c3e50;">Add New Book / Magazine</h1>
+
+<div style="max-width: 700px; margin: auto; padding: 2rem; background: #f4f7f9; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+  <%= form_with url: admin_books_upload_path, method: :post, local: true do |form| %>
+    <div style="margin-bottom: 1.2rem;">
+      <%= form.label :title, 'Title', style: 'font-weight: bold;' %><br>
+      <%= form.text_field :title, style: 'width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc;' %>
+    </div>
+
+    <div style="margin-bottom: 1.2rem;">
+      <%= form.label :isbn, 'ISBN', style: 'font-weight: bold;' %><br>
+      <%= form.text_field :isbn, style: 'width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc;' %>
+    </div>
+
+    <div style="margin-bottom: 1.2rem;">
+      <%= form.label :authors, 'Authors (comma separated)', style: 'font-weight: bold;' %><br>
+      <%= form.text_field :authors, style: 'width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc;' %>
+    </div>
+
+    <div style="margin-bottom: 1.2rem;">
+      <%= form.label :description, 'Description', style: 'font-weight: bold;' %><br>
+      <%= form.text_area :description, rows: 3, style: 'width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc;' %>
+    </div>
+
+    <div style="margin-bottom: 1.2rem;">
+      <%= form.label :book_type, 'Type', style: 'font-weight: bold;' %><br>
+      <%= form.select :book_type, ['book', 'magazine'], {}, style: 'width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc;' %>
+    </div>
+
+    <div style="margin-bottom: 1.2rem;">
+      <%= form.label :genre, 'Genre', style: 'font-weight: bold;' %><br>
+      <%= form.text_field :genre, placeholder: 'Default is Common', style: 'width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid #ccc;' %>
+    </div>
+
+    <div style="text-align:center;">
+      <%= form.submit 'Save Record', style: 'padding: 0.6rem 2rem; background-color: #3498db; color: white; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;' %>
+    </div>
+  <% end %>
+</div>
+
+<% if flash[:notice] %>
+  <p style="text-align:center; color:green; font-weight:bold; margin-top: 1rem;"> <%= flash[:notice] %> </p>
+<% elsif flash[:alert] %>
+  <p style="text-align:center; color:red; font-weight:bold; margin-top: 1rem;"> <%= flash[:alert] %> </p>
+<% end %>
