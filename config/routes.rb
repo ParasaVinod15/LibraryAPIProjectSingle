@@ -2,13 +2,19 @@ Rails.application.routes.draw do
   namespace :admin do
     # get "books/upload_form"
     # get "books/upload"
-     get  "books", to: "books#index"
+    resources :books, only: [ :index, :new, :create ]
+     get "books", to: "books#index"
      get "books/new", to: "books#new"
     post "books/upload", to: "books#upload_csv"
+     get "search", to: "search#index"
+     get "search", to: "search#index"
   end
+  # get "/public/home", to: "public#home"
+
+
   #  get 'search', to: 'public#search_form'
   # post 'search/results', to: 'public#search'
-  
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

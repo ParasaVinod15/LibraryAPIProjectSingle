@@ -1,84 +1,97 @@
 class Admin::BooksController < ApplicationController
   skip_before_action :verify_authenticity_token  # Required for Postman requests
   def index
-    books = Book.includes(:authors).all
+  @books = Book.includes(:authors).all
 
-    render json: books.as_json(
-      only: [:id, :title, :isbn, :description, :book_type, :genre],
-      include: {
-        authors: {
-          only: [:id, :name]
-        }
-      }
-    )
+  if params[:isbn].present?
+    @books = @books.where(isbn: params[:isbn])
   end
+
+  if params[:book_type].present?
+    @books = @books.where(book_type: params[:book_type])
+  end
+
+  if params[:genre].present?
+    @books = @books.where("LOWER(genre) LIKE ?", "%#{params[:genre].downcase}%")
+  end
+
+  if params[:author].present?
+    @books = @books.joins(:authors).where("LOWER(authors.name) LIKE ?", "%#{params[:author].downcase}%")
+  end
+  end
+
+
   def new
-end
+  end
 
 
   def upload_csv
-  errors = []
+    csv_text = request.body.read
+    delimiter = ";"
 
-  
-  if params[:title].present?
+    rows = csv_text.split("\n")
+    errors = []
+    success_count = 0
 
-  row = [
-    params[:title],
-    params[:isbn],
-    params[:authors],
-    params[:description],
-    params[:book_type],
-    params[:genre].presence || "Common"
-  ].join(";") 
-  rows = [row]
-else
-  csv_text = request.body.read
-  rows = csv_text.strip.split("\n")
-end
+    ActiveRecord::Base.transaction do
+      rows.each_with_index do |line, index|
+        next if line.strip.blank?
 
+        columns = line.strip.split(delimiter, -1)
 
-  rows.each_with_index do |line, index|
-    cols = line.split(';').map(&:strip)
-    next if cols.length < 5
+        if columns.size < 6
+          errors << "Row #{index + 1}: Incomplete record (expected 6 fields)"
+          next
+        end
 
-    title, isbn, authors_str, description, type, genre = cols
-    genre ||= "Common"
+        title, isbn, author_str, description, type_str, genre = columns.map(&:strip)
+        genre = "Common" if genre.blank?
 
-    if isbn.blank? || authors_str.blank?
-      errors << "Row #{index + 1}: Missing ISBN or author"
-      next
-    end
+        # Validate fields
+        missing_fields = []
+        missing_fields << "title" if title.blank?
+        missing_fields << "ISBN" if isbn.blank?
+        missing_fields << "author" if author_str.blank?
+        missing_fields << "description" if description.blank?
+        missing_fields << "type" if type_str.blank?
 
-    book = Book.find_or_initialize_by(isbn: isbn)
-    book.title = title
-    book.description = description
-    book.book_type = type
-    book.genre = genre
-    book.save!
+        unless %w[book magazine].include?(type_str.to_s.downcase)
+          missing_fields << "valid type (must be 'book' or 'magazine')"
+        end
 
-    authors = authors_str.split(',').map(&:strip)
-    authors.each do |author_name|
-      author = Author.find_or_create_by(name: author_name)
-      BookAuthor.find_or_create_by(book: book, author: author)
-    end
-  rescue => e
-    errors << "Row #{index + 1}: #{e.message}"
-  end
+        if missing_fields.any?
+          errors << "Row #{index + 1}: Missing or invalid #{missing_fields.join(', ')}"
+          next
+        end
 
-  if params[:title].present?
+        book_type = type_str.downcase == "book" ? :book : :magazine
+
+        book = Book.find_or_initialize_by(isbn: isbn)
+        book.assign_attributes(
+          title: title,
+          description: description,
+          genre: genre,
+          book_type: book_type
+        )
+
+        if book.save
+          author_names = author_str.split(",").map(&:strip).reject(&:blank?)
+          if author_names.empty?
+            errors << "Row #{index + 1}: No valid authors provided"
+            next
+          end
+          book.authors = author_names.map { |name| Author.find_or_create_by(name: name) }
+          success_count += 1
+        else
+          errors << "Row #{index + 1}: #{book.errors.full_messages.join(', ')}"
+        end
+      end # end of rows.each
+    end # end of transaction
+
     if errors.any?
-      flash[:alert] = errors.join("<br>").html_safe
+      render json: { success: success_count, errors: errors }, status: :unprocessable_entity
     else
-      flash[:notice] = "Book/magazine added successfully."
-    end
-    redirect_to admin_books_new_path
-  else
-    if errors.any?
-      render json: { status: "error", errors: errors }, status: :unprocessable_entity
-    else
-      render json: { status: "success", message: "Books uploaded successfully" }, status: :ok
+      render json: { message: "#{success_count} records processed successfully." }, status: :ok
     end
   end
-end
-
 end

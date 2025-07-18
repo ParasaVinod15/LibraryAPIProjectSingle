@@ -1,0 +1,184 @@
+<h1 class="page-title">Library Search</h1>
+<%= javascript_include_tag "books", "data-turbo-track": "reload" %>
+
+<style>
+  .filters {
+    padding: 20px;
+    background-color: #f0f4f8;
+    border: 2px solid #d4dce5;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+  }
+
+  #search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+  }
+
+  .filter-group label {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #222;
+  }
+
+  .filter-group input,
+  .filter-group select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: white;
+  }
+
+  .search-btn,
+  .clear-btn {
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    margin-top: 10px;
+  }
+
+  .search-btn {
+    background-color: #0077cc;
+    color: white;
+  }
+
+  .search-btn:hover {
+    background-color: #005fa3;
+  }
+
+  .clear-btn {
+    background-color: #cccccc;
+    color: #333;
+  }
+
+  .clear-btn:hover {
+    background-color: #b3b3b3;
+  }
+
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .book-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+
+  .book-card h2 {
+    margin-top: 0;
+    color: #333;
+  }
+
+  .book-card p {
+    margin: 4px 0;
+  }
+
+  .page-title {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #2a2a2a;
+  }
+
+  @media (max-width: 768px) {
+    #search-form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<div class="filters">
+  <form id="search-form" method="get" action="/admin/books">
+    <div class="filter-group">
+      <label>ISBN:</label>
+      <input type="text" name="isbn" id="isbn-input" list="isbn-list" placeholder="Type or select ISBN">
+      <datalist id="isbn-list">
+        <% Book.pluck(:isbn).uniq.each do |isbn| %>
+          <option value="<%= isbn %>">
+        <% end %>
+      </datalist>
+    </div>
+
+    <div class="filter-group">
+      <label>Author:</label>
+      <input type="text" name="author" id="author-input" list="author-list" placeholder="Type or select author">
+      <datalist id="author-list">
+        <% Author.pluck(:name).uniq.each do |name| %>
+          <option value="<%= name %>">
+        <% end %>
+      </datalist>
+    </div>
+
+    <div class="filter-group">
+      <label>Type:</label>
+      <select name="book_type">
+        <option value="">-- Select --</option>
+        <option value="book">Book</option>
+        <option value="magazine">Magazine</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Genre:</label>
+      <input type="text" name="genre" id="genre-input" list="genre-list" placeholder="Type or select genre">
+      <datalist id="genre-list">
+        <% Book.pluck(:genre).uniq.each do |genre| %>
+          <option value="<%= genre %>">
+        <% end %>
+      </datalist>
+    </div>
+
+    <div class="filter-group">
+      <button class="search-btn" type="submit">Search</button>
+    </div>
+
+    <div class="filter-group">
+      <button class="clear-btn" type="button" onclick="window.location.href='/admin/books'">Clear</button>
+
+    </div>
+  </form>
+</div>
+
+<hr>
+
+<div class="books-grid">
+  <% @books.each do |book| %>
+    <div class="book-card">
+      <h2><%= book.title %></h2>
+      <p><strong>ISBN:</strong> <%= book.isbn %></p>
+      <p><strong>Type:</strong> <%= book.book_type %></p>
+      <p><strong>Genre:</strong> <%= book.genre %></p>
+      <p><strong>Description:</strong> <%= book.description %></p>
+      <p><strong>Authors:</strong> <%= book.authors.map(&:name).join(', ') %></p>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  function clearFilters() {
+    document.getElementById("isbn-input").value = "";
+    document.getElementById("author-input").value = "";
+    document.getElementById("genre-input").value = "";
+    document.querySelector("select[name='book_type']").selectedIndex = 0;
+  }
+</script>

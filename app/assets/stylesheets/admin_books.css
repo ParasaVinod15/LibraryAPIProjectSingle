@@ -1,0 +1,88 @@
+.page-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-top: 1rem;
+  color: #2c3e50;
+  font-weight: bold;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.book-card {
+  background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+  border: 2px solid #8e44ad;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.book-card h2 {
+  font-size: 1.5rem;
+  color: #34495e;
+  margin-bottom: 0.5rem;
+}
+
+.book-card p {
+  margin: 0.3rem 0;
+  font-size: 0.95rem;
+  color: #2c3e50;
+}
+.filters {
+  background-color: #fdfdfd;
+  padding: 1.5rem;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  margin: 1rem auto;
+  width: 90%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.filter-group {
+  margin-bottom: 1rem;
+}
+
+.filter-group label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.search-btn {
+  background-color: #5a2fc2;
+  color: white;
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+  background-color: #3f1c8b;
+}
+
+.book-card:hover {
+  transform: scale(1.02);
+}
+
