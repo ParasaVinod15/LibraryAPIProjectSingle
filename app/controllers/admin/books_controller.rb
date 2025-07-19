@@ -62,8 +62,8 @@ class Admin::BooksController < ApplicationController
         else
           errors << "Row #{index + 1}: #{book.errors.full_messages.join(', ')}"
         end
-      end # end of rows.each
-    end # end of transaction
+      end
+    end
 
     if errors.any?
       render json: { success: success_count, errors: errors }, status: :unprocessable_entity
