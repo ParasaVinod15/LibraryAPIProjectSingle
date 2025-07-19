@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   namespace :admin do
     post "books/upload", to: "books#upload_csv"
-     get "search", to: "search#index"
+    get "search", to: "search#index"
   end
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
