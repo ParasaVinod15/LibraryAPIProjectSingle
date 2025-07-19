@@ -1,19 +1,8 @@
 Rails.application.routes.draw do
   namespace :admin do
-    # get "books/upload_form"
-    # get "books/upload"
-    resources :books, only: [ :index, :new, :create ]
-     get "books", to: "books#index"
-     get "books/new", to: "books#new"
     post "books/upload", to: "books#upload_csv"
      get "search", to: "search#index"
-     get "search", to: "search#index"
   end
-  # get "/public/home", to: "public#home"
-
-
-  #  get 'search', to: 'public#search_form'
-  # post 'search/results', to: 'public#search'
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

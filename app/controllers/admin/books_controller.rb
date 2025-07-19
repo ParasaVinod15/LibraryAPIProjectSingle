@@ -1,28 +1,5 @@
 class Admin::BooksController < ApplicationController
   skip_before_action :verify_authenticity_token  # Required for Postman requests
-  def index
-  @books = Book.includes(:authors).all
-
-  if params[:isbn].present?
-    @books = @books.where(isbn: params[:isbn])
-  end
-
-  if params[:book_type].present?
-    @books = @books.where(book_type: params[:book_type])
-  end
-
-  if params[:genre].present?
-    @books = @books.where("LOWER(genre) LIKE ?", "%#{params[:genre].downcase}%")
-  end
-
-  if params[:author].present?
-    @books = @books.joins(:authors).where("LOWER(authors.name) LIKE ?", "%#{params[:author].downcase}%")
-  end
-  end
-
-
-  def new
-  end
 
 
   def upload_csv
