@@ -1,63 +1,31 @@
+
+require "csv"
+
 class Admin::BooksController < ApplicationController
   skip_before_action :verify_authenticity_token
-
 
   def upload_csv
     csv_text = request.body.read
     delimiter = ";"
-
-    rows = csv_text.split("\n")
     errors = []
     success_count = 0
 
     ActiveRecord::Base.transaction do
-      rows.each_with_index do |line, index|
-        next if line.strip.blank?
+      CSV.parse(csv_text, col_sep: delimiter).each_with_index do |row, index|
+        next if row.compact.empty?
 
-        columns = line.strip.split(delimiter, -1)
+        book, author_str, row_errors = build_book_from_csv_row(row, index)
 
-        if columns.size < 6
-          errors << "Row #{index + 1}: Incomplete record (expected 6 fields)"
+        if row_errors.any?
+          errors.concat(row_errors)
           next
         end
 
-        title, isbn, author_str, description, type_str, genre = columns.map(&:strip)
-        genre = "Common" if genre.blank?
 
-        # Validate fields
-        missing_fields = []
-        missing_fields << "title" if title.blank?
-        missing_fields << "ISBN" if isbn.blank?
-        missing_fields << "author" if author_str.blank?
-        missing_fields << "description" if description.blank?
-        missing_fields << "type" if type_str.blank?
-
-        unless %w[book magazine].include?(type_str.to_s.downcase)
-          missing_fields << "valid type (must be 'book' or 'magazine')"
-        end
-
-        if missing_fields.any?
-          errors << "Row #{index + 1}: Missing or invalid #{missing_fields.join(', ')}"
-          next
-        end
-
-        book_type = type_str.downcase == "book" ? :book : :magazine
-
-        book = Book.find_or_initialize_by(isbn: isbn)
-        book.assign_attributes(
-          title: title,
-          description: description,
-          genre: genre,
-          book_type: book_type
-        )
+        author_names = author_str.to_s.split(",").map(&:strip).reject(&:blank?)
+        book.authors = author_names.map { |name| Author.find_or_create_by(name: name) }
 
         if book.save
-          author_names = author_str.split(",").map(&:strip).reject(&:blank?)
-          if author_names.empty?
-            errors << "Row #{index + 1}: No valid authors provided"
-            next
-          end
-          book.authors = author_names.map { |name| Author.find_or_create_by(name: name) }
           success_count += 1
         else
           errors << "Row #{index + 1}: #{book.errors.full_messages.join(', ')}"
@@ -70,5 +38,28 @@ class Admin::BooksController < ApplicationController
     else
       render json: { message: "#{success_count} records processed successfully." }, status: :ok
     end
+  end
+
+  private
+
+  def build_book_from_csv_row(row, index)
+   if row.size < 6
+    return [ nil, nil, [ "Row #{index + 1}: Incomplete record (expected 6 fields)" ] ]
+   end
+
+
+   title, isbn, author_str, description, type_str, genre = row.map { |v| v&.strip }
+
+   genre = "Common" if genre.blank?
+
+   book = Book.find_or_initialize_by(isbn: isbn)
+   book.assign_attributes(
+    title: title,
+    description: description,
+    genre: genre,
+    book_type: type_str.to_s.downcase
+  )
+
+   [ book, author_str, [] ]
   end
 end
